@@ -11,6 +11,8 @@ string get_main_text(string name_file);
 vector<string> separate_words(string main_text);
 void write_result(string name_file, vector<string> words);
 void sort(vector <string>& words, int left, int right);
+void write_analysis(string name_file, string main_text, int word_count, vector<int> number_words_array, int sort_time);
+vector<int> get_array_count_words(vector<string> words);
 
 int main()
 {
@@ -35,6 +37,15 @@ int main()
 
     //запись в файл result
     write_result(name_file, words);
+
+    //подсчет количества слов на каждую букву
+    vector<int> number_words_array = get_array_count_words(words);
+
+    int words_count = words.size(); //количество слов
+
+    //запись в файл analysis 
+    write_analysis(name_file, main_text, words_count, number_words_array, sort_time);
+
     return 0;
 }
 
@@ -182,4 +193,56 @@ void sort(vector <string>& words, int left, int right)
         j++;
         k++;
     }
+}
+
+vector<int> get_array_count_words(vector<string> words)
+{
+    vector<int> count_words_array(33);
+    //Каждый элемент массив - это количество слов на букву
+
+    string hi_reg = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"; //алфавит русский
+    string lo_reg = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
+
+    for (int i = 0; i < words.size(); i++) //идем по всему массиву строк
+    {
+        if (hi_reg.find(words[i][0]) != -1) // если нашли в верхнем регистре 
+            count_words_array[hi_reg.find(words[i][0])]++; //то увеличиваем элемент с индексом равным номеру большой буквы в верхнем регистре
+        else
+            count_words_array[lo_reg.find(words[i][0])]++;// увеличиваем элемент с индексом равным номеру маленькой буквы в нижнем регистре
+    }
+    return count_words_array;
+}
+
+void write_analysis(string name_file, string main_text, int word_count, vector<int> number_words_array, int sort_time)
+{
+    ofstream file_analysis;
+
+    string analysis_str = "analysis_" + name_file + ".txt";
+    file_analysis.open(analysis_str); // открываем файл на запись в него
+
+    file_analysis
+        << "Исходный текст: " << endl
+        << "<<" << main_text << ">>" << endl
+        << "Параметры выбранного варианта (12): кириллица, по алфавиту, по возрастанию, игнорировать числа, сортировка слиянием" << endl
+        << "Количество слов: " << word_count << endl
+        << "Время сортировки: " << static_cast<double>(sort_time) / 1000 << " с" << endl
+        << "Статистика (количество слов на каждую букву алфавита): " << endl;
+
+    cout
+        << "Исходный текст: " << endl
+        << "<<" << main_text << ">>" << endl
+        << "Параметры выбранного варианта (12): кириллица, по алфавиту, по возрастанию, игнорировать числа, сортировка слиянием" << endl
+        << "Количество слов: " << word_count << endl
+        << "Время сортировки: " << static_cast<double>(sort_time) / 1000 << " с" << endl
+        << "Статистика (количество слов на каждую букву алфавита): " << endl;
+
+    string lo_reg = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
+
+    //вывод количества слов на каждую букву
+    for (int i = 0; i < number_words_array.size(); i++)
+    {
+        file_analysis << lo_reg[i] << ": " << number_words_array[i] << endl;
+        cout << lo_reg[i] << ": " << number_words_array[i] << endl;
+    }
+    file_analysis.close();
 }
