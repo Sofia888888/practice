@@ -10,6 +10,7 @@ using namespace std;
 string get_main_text(string name_file);
 vector<string> separate_words(string main_text);
 void write_result(string name_file, vector<string> words);
+void sort(vector <string>& words, int left, int right);
 
 int main()
 {
@@ -26,6 +27,12 @@ int main()
     //функция разбивает текст на слова 
     vector <string> words = separate_words(main_text);
     
+    //сортировка слиянием
+    int start_time = clock();
+    sort(words, 0, words.size() - 1);
+    int end_time = clock();
+    int sort_time = end_time - start_time; //время сортировки
+
     //запись в файл result
     write_result(name_file, words);
     return 0;
@@ -102,4 +109,77 @@ void write_result(string name_file, vector <string> words)
         file_result << words[i] << endl;
     }
     file_result.close();
+}
+
+void sort(vector <string>& words, int left, int right)
+{
+    //взято отсюда https://evileg.com/ru/post/466/ и после модифицировано
+
+    string lo_reg = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
+    string hi_reg = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"; //алфавит русский
+
+    if (left >= right)
+        return;
+
+    int mid = (left + right) / 2; //находим индекс середины последовательности 
+
+    sort(words, left, mid);
+    sort(words, mid + 1, right);
+
+    int len_1 = mid - left + 1;
+    int len_2 = right - mid;
+
+    //создается два массива с длинами len_1 и len_2
+    vector <string> L(len_1), M(len_2);
+
+    //записываем в массвы элементы из основного массива
+    for (int i = 0; i < len_1; i++)
+        L[i] = words[left + i];
+    for (int j = 0; j < len_2; j++)
+        M[j] = words[mid + 1 + j];
+
+    int i = 0, j = 0, k = left;
+
+    int number1, number2;
+    // Пока мы не достигнем конца L или M, выбираем большее из элементов L и M и помещаем их в правильное положение в точке A [p..r]
+    while (i < len_1 && j < len_2)
+    {
+        if (lo_reg.find(L[i][0]) == -1) //если первая буква не из нижнего алфавита 
+            number1 = hi_reg.find(L[i][0]); //то номер равен номеру буквы в верхнем алфавите
+        else
+            number1 = lo_reg.find(L[i][0]); //иначе, номер равен номеру буквы в нижнем алфавите
+
+        //аналогично
+        if (lo_reg.find(M[j][0]) == -1)
+            number2 = hi_reg.find(M[j][0]);
+        else
+            number2 = lo_reg.find(M[j][0]);
+
+        if (number1 <= number2) //сравниваем номера букв 
+        {
+            words[k] = L[i];
+            i++;
+        }
+        else
+        {
+            words[k] = M[j];
+            j++;
+        }
+        k++;
+    }
+
+    // Когда у нас кончаются элементы в L или M, возьмите оставшиеся элементы и поместите в A [p..r]
+    while (i < len_1)
+    {
+        words[k] = L[i];
+        i++;
+        k++;
+    }
+
+    while (j < len_2)
+    {
+        words[k] = M[j];
+        j++;
+        k++;
+    }
 }
